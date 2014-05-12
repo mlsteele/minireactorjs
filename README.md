@@ -5,6 +5,8 @@ Minimal reactive programming base for javascript (coffeescript).
 coffee minireactor.coffee
 ```
 
+## Example Usage
+
 ```coffee
 # create a new reactive context
 ctx = new MiniReactor()
@@ -34,4 +36,12 @@ ctx.autorun ->
 # set a new value for 'frobnitz'
 # set's do not have to be run inside 'autorun' blocks
 ctx.set 'frobnitz', 4
+```
+
+```
+frobnitz is set to 2
+watch out for the dingle-arm
+frobnitz is set to 3
+dingle-arm disengaged
+frobnitz is set to 4
 ```
