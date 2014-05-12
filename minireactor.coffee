@@ -1,6 +1,10 @@
-# Set implementation that is not efficient
-# but does support functions as elements.
-# This exists to solve the problem whereby functions hash to strings.
+# MiniReactor.coffee
+# Minimal reactive programming base.
+
+# Set implementation that supports functions as keys.
+# This implementation is not efficient,
+# but it solves the problem that standard objects
+# have where functions hash to strings.
 class SlowSet
   constructor: (list) ->
     @elements = []
@@ -15,6 +19,9 @@ class SlowSet
 
 
 # Reactive context.
+# Each context represents a reactive data store
+# and a dependency graph to facilitate automatic
+# change propagation.
 class MiniReactor
   constructor: ->
     # mapping from stored values -> their values and dependents
@@ -22,6 +29,7 @@ class MiniReactor
     # queue of functions waiting to be run
     @queue = []
 
+  # Get a value from the data store
   get: (key) ->
     if @active_fn?
       @values[key].dependents.add @active_fn
@@ -31,6 +39,7 @@ class MiniReactor
     else
       undefined
 
+  # Store or update a value in the data store
   # key should be a string, anything else will be converted to a string
   # val can be anything
   set: (key, val) ->
@@ -46,6 +55,9 @@ class MiniReactor
 
     return this
 
+  # Run a function immediately
+  # and run it again when data that it depends on changes.
+  # Please be sure not to create dependencies cycles.
   autorun: (fn) ->
     @active_fn = fn
     fn()
@@ -55,26 +67,23 @@ class MiniReactor
       @autorun @queue.shift()
 
 
+do example_use = ->
+  ctx = new MiniReactor()
 
-ctx = new MiniReactor()
+  ctx.set 'frobnitz', 2
+  ctx.set 'dingle-arm', true
 
-ctx.set 'frobnitz', 2
-ctx.set 'dingle-arm', true
+  ctx.autorun ->
+    console.log "frobnitz is set to #{ctx.get 'frobnitz'}"
 
-ctx.autorun ->
-  console.log "frobnitz is set to #{ctx.get 'frobnitz'}"
+  ctx.autorun ->
+    if ctx.get 'dingle-arm'
+      console.log "watch out for the dingle-arm"
+    else
+      console.log "dingle-arm disengaged"
 
-ctx.autorun ->
-  if ctx.get 'dingle-arm'
-    console.log "watch out for the dingle-arm"
-  else
-    console.log "dingle-arm disengaged"
+  ctx.autorun ->
+    ctx.set 'frobnitz', 3
+    ctx.set 'dingle-arm', false
 
-ctx.autorun ->
-  ctx.set 'frobnitz', 3
-  ctx.set 'dingle-arm', false
-
-ctx.set 'frobnitz', 4
-
-# console.log ctx.values
-# console.log ctx.functions
+  ctx.set 'frobnitz', 4
